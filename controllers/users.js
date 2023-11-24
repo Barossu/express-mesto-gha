@@ -11,7 +11,7 @@ module.exports.getUserById = (req, res) => {
     .then((user) => res.send(user))
     .catch((err) => {
       if (err.name === 'CastError') {
-        res.status(404).send({ message: `Произошла ошибка ${err.name}: ${err.message}` });
+        res.status(400).send({ message: `Произошла ошибка ${err.name}: ${err.message}` });
         return;
       }
       res.status(500).send({ message: `Произошла ошибка ${err.name}: ${err.message}` });
