@@ -22,10 +22,16 @@ module.exports.createCard = (req, res) => {
 
 module.exports.deleteCard = (req, res) => {
   Card.findByIdAndDelete(req.params.cardId)
-    .then((card) => res.send(card))
+    .then((card) => {
+      if (!card) {
+        res.status(404).send({ message: 'Нет карточки с таким id' });
+        return;
+      }
+      res.send(card);
+    })
     .catch((err) => {
       if (err.name === 'CastError') {
-        res.status(404).send({ message: `Произошла ошибка ${err.name}: ${err.message}` });
+        res.status(400).send({ message: `Произошла ошибка ${err.name}: ${err.message}` });
         return;
       }
       res.status(500).send({ message: `Произошла ошибка ${err.name}: ${err.message}` });
@@ -41,10 +47,16 @@ module.exports.likeCard = (req, res) => {
       runValidators: true,
     },
   )
-    .then((card) => res.send(card))
+    .then((card) => {
+      if (!card) {
+        res.status(404).send({ message: 'Нет карточки с таким id' });
+        return;
+      }
+      res.send(card);
+    })
     .catch((err) => {
       if (err.name === 'CastError') {
-        res.status(404).send({ message: `Произошла ошибка ${err.name}: ${err.message}` });
+        res.status(400).send({ message: `Произошла ошибка ${err.name}: ${err.message}` });
         return;
       }
       res.status(500).send({ message: `Произошла ошибка ${err.name}: ${err.message}` });
@@ -60,10 +72,16 @@ module.exports.dislikeCard = (req, res) => {
       runValidators: true,
     },
   )
-    .then((card) => res.send(card))
+    .then((card) => {
+      if (!card) {
+        res.status(404).send({ message: 'Нет карточки с таким id' });
+        return;
+      }
+      res.send(card);
+    })
     .catch((err) => {
       if (err.name === 'CastError') {
-        res.status(404).send({ message: `Произошла ошибка ${err.name}: ${err.message}` });
+        res.status(400).send({ message: `Произошла ошибка ${err.name}: ${err.message}` });
         return;
       }
       res.status(500).send({ message: `Произошла ошибка ${err.name}: ${err.message}` });

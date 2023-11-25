@@ -19,4 +19,8 @@ app.use(bodyParser.json());
 app.use('/users', require('./routes/users'));
 app.use('/cards', require('./routes/cards'));
 
+app.all('*', (req, res) => {
+  res.status(404).send({ message: 'Путь не найден' });
+});
+
 app.listen(PORT);
