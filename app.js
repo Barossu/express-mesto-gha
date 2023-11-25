@@ -1,11 +1,14 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
+const dotenv = require('dotenv');
+
+dotenv.config();
 
 const app = express();
-const { PORT = 3000 } = process.env;
+const { PORT = 3000, DB_CONN } = process.env;
 
-mongoose.connect('mongodb://127.0.0.1:27017/mestodb');
+mongoose.connect(DB_CONN);
 
 app.use((req, res, next) => {
   req.user = {
