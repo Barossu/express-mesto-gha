@@ -1,6 +1,11 @@
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
 const User = require('../models/user');
+const ValidationError = require('../errors/ValidationError');
+const NotFoundError = require('../errors/ValidationError');
+const ConflictError = require('../errors/ConflictError');
 
-const updateUserData = (req, res, data) => {
+const updateUserData = (req, res, next, data) => {
   User.findByIdAndUpdate(
     req.user._id,
     data,
@@ -12,56 +17,90 @@ const updateUserData = (req, res, data) => {
     .then((user) => res.send(user))
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        res.status(400).send({ message: 'Переданы некорректные данные' });
-        return;
+        next(new ValidationError('Переданы некорректные данные'));
       }
-      res.status(500).send({ message: 'На сервере произошла ошибка' });
+      next(err);
     });
 };
 
-module.exports.getUsers = (req, res) => {
-  User.find({})
-    .then((users) => res.send(users))
-    .catch(() => res.status(500).send({ message: 'На сервере произошла ошибка' }));
-};
-
-module.exports.getUserById = (req, res) => {
-  User.findById(req.params.userId)
+const getAnyUserById = (req, res, next, userId) => {
+  User.findById(userId)
     .then((user) => {
       if (!user) {
-        res.status(404).send({ message: 'Нет пользователя с таким id' });
-        return;
+        throw new NotFoundError('Нет пользователя с таким id');
       }
       res.send(user);
     })
     .catch((err) => {
       if (err.name === 'CastError') {
-        res.status(400).send({ message: 'Переданы некорректные данные' });
-        return;
+        next(new ValidationError('Переданы некорректные данные'));
       }
-      res.status(500).send({ message: 'На сервере произошла ошибка' });
+      next(err);
     });
 };
 
-module.exports.createUser = (req, res) => {
-  const { name, about, avatar } = req.body;
-  User.create({ name, about, avatar })
+module.exports.getUsers = (req, res, next) => {
+  User.find({})
+    .then((users) => res.send(users))
+    .catch(next);
+};
+
+module.exports.getCurrentUser = (req, res, next) => {
+  getAnyUserById(req, res, next, req.user._id);
+};
+
+module.exports.getUserById = (req, res, next) => {
+  getAnyUserById(req, res, next, req.params.userId);
+};
+
+module.exports.createUser = (req, res, next) => {
+  const {
+    name,
+    about,
+    avatar,
+    email,
+    password,
+  } = req.body;
+  bcrypt.hash(password, 10)
+    .then((hash) => User.create({
+      name,
+      about,
+      avatar,
+      email,
+      password: hash,
+    }))
     .then((user) => res.send(user))
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        res.status(400).send({ message: 'Переданы некорректные данные' });
-        return;
+        next(new ValidationError('Переданы некорректные данные'));
       }
-      res.status(500).send({ message: 'На сервере произошла ошибка' });
+      if (err.code === 11000) {
+        next(new ConflictError('Пользователь с такой почтой уже существует'));
+      }
+      next(err);
     });
 };
 
-module.exports.updateProfile = (req, res) => {
+module.exports.updateProfile = (req, res, next) => {
   const { name, about } = req.body;
-  updateUserData(req, res, { name, about });
+  updateUserData(req, res, next, { name, about });
 };
 
-module.exports.updateAvatar = (req, res) => {
+module.exports.updateAvatar = (req, res, next) => {
   const { avatar } = req.body;
-  updateUserData(req, res, { avatar });
+  updateUserData(req, res, next, { avatar });
+};
+
+module.exports.login = (req, res, next) => {
+  const { email, password } = req.body;
+  User.findUserByCredentials(email, password)
+    .then((user) => {
+      const token = jwt.sign({ _id: user._id }, 'chtoto', { expiresIn: '7d' });
+
+      res.cookie('jwt', token, {
+        maxAge: 3600000 * 24 * 7,
+        httpOnly: true,
+      }).send({ jwt: token });
+    })
+    .catch(next);
 };
