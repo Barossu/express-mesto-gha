@@ -1,6 +1,6 @@
 const Card = require('../models/card');
 const ValidationError = require('../errors/ValidationError');
-const NotFoundError = require('../errors/ValidationError');
+const NotFoundError = require('../errors/NotFoundError');
 const ForbiddenError = require('../errors/ForbiddenError');
 
 const updateLike = (req, res, next, method) => {
