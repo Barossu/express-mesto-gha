@@ -48,23 +48,22 @@ module.exports.createCard = (req, res, next) => {
 module.exports.deleteCard = (req, res, next) => {
   Card.findById(req.params.cardId)
     .then((card) => {
+      if (!card) {
+        throw new NotFoundError('Нет карточки с таким id');
+      }
       if (card.owner.toHexString() !== req.user._id) {
         next(new ForbiddenError('Нет прав на удаление чужой карточки'));
       }
 
       Card.findByIdAndDelete(req.params.cardId)
-        .then((deletedCard) => {
-          if (!deletedCard) {
-            throw new NotFoundError('Нет карточки с таким id');
-          }
-          res.send(deletedCard);
-        })
-        .catch((err) => {
-          if (err.name === 'CastError') {
-            next(new ValidationError('Переданы некорректные данные'));
-          }
-          next(err);
-        });
+        .then((deletedCard) => res.send(deletedCard))
+        .catch(next);
+    })
+    .catch((err) => {
+      if (err.name === 'CastError') {
+        next(new ValidationError('Переданы некорректные данные'));
+      }
+      next(err);
     });
 };
 
