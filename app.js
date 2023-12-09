@@ -41,12 +41,18 @@ app.use('/users', celebrate({
     about: Joi.string().min(2).max(30),
     avatar: Joi.string().regex(pattern),
   }),
+  params: Joi.object().keys({
+    userId: Joi.string().required().hex().length(24),
+  }),
 }), require('./routes/users'));
 
 app.use('/cards', celebrate({
   body: Joi.object().keys({
     name: Joi.string().min(2).max(30),
     link: Joi.string().regex(pattern),
+  }),
+  params: Joi.object().keys({
+    cardId: Joi.string().required().hex().length(24),
   }),
 }), require('./routes/cards'));
 
