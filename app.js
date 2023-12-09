@@ -19,6 +19,9 @@ app.use(bodyParser.json());
 app.use(cookieParser());
 app.use(router);
 app.use(errors());
+app.all('*', (req, res) => {
+  res.status(404).send({ message: 'Путь не найден' });
+});
 app.use((err, req, res, next) => {
   const { statusCode = 500, message } = err;
 
