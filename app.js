@@ -42,7 +42,7 @@ app.use('/users', celebrate({
     avatar: Joi.string().regex(pattern),
   }),
   params: Joi.object().keys({
-    userId: Joi.string().required().hex().length(24),
+    userId: Joi.string().hex().length(24),
   }),
 }), require('./routes/users'));
 
