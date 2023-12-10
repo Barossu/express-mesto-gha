@@ -19,6 +19,7 @@ const updateUserData = (req, res, next, data) => {
     .catch((err) => {
       if (err.name === 'ValidationError') {
         next(new ValidationError('Переданы некорректные данные'));
+        return;
       }
       next(err);
     });
@@ -35,6 +36,7 @@ const getAnyUserById = (req, res, next, userId) => {
     .catch((err) => {
       if (err.name === 'CastError') {
         next(new ValidationError('Переданы некорректные данные'));
+        return;
       }
       next(err);
     });
@@ -73,14 +75,16 @@ module.exports.createUser = (req, res, next) => {
     .then((user) => {
       const newUser = user.toObject();
       delete newUser.password;
-      res.send(newUser);
+      res.status(201).send(newUser);
     })
     .catch((err) => {
       if (err.name === 'ValidationError') {
         next(new ValidationError('Переданы некорректные данные'));
+        return;
       }
       if (err.code === 11000) {
         next(new ConflictError('Пользователь с такой почтой уже существует'));
+        return;
       }
       next(err);
     });
