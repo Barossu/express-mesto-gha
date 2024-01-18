@@ -9,6 +9,7 @@ const cookieParser = require('cookie-parser');
 const router = require('./routes/index');
 const NotFoundError = require('./errors/NotFoundError');
 const errorHandler = require('./middlewares/errorHandler');
+const { requestLogger, errorLogger } = require('./middlewares/logger');
 
 const limiter = rateLimit({
   max: 100,
@@ -27,7 +28,11 @@ app.use(helmet());
 app.use(limiter);
 app.use(bodyParser.json());
 app.use(cookieParser());
+
+app.use(requestLogger);
 app.use(router);
+app.use(errorLogger);
+
 app.use(errors());
 app.all('*', (req, res, next) => {
   next(new NotFoundError('Путь не найден'));

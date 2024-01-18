@@ -6,6 +6,8 @@ const NotFoundError = require('../errors/NotFoundError');
 const ConflictError = require('../errors/ConflictError');
 const UnauthorizedError = require('../errors/UnauthorizedError');
 
+const { JWT_SECRET = 'bbf45588b98448e2233a042bde39a219617b9c71e6c71adffaf01415d27ba310' } = process.env;
+
 const updateUserData = (req, res, next, data) => {
   User.findByIdAndUpdate(
     req.user._id,
@@ -73,9 +75,9 @@ module.exports.createUser = (req, res, next) => {
       password: hash,
     }))
     .then((user) => {
-      const newUser = user.toObject();
-      delete newUser.password;
-      res.status(201).send(newUser);
+      // const newUser = user.toObject();
+      // delete newUser.password;
+      res.status(201).send(user);
     })
     .catch((err) => {
       if (err.name === 'ValidationError') {
@@ -116,7 +118,7 @@ module.exports.login = (req, res, next) => {
         });
     })
     .then((user) => {
-      const token = jwt.sign({ _id: user._id }, 'chtoto', { expiresIn: '7d' });
+      const token = jwt.sign({ _id: user._id }, JWT_SECRET, { expiresIn: '7d' });
 
       res.cookie('jwt', token, {
         maxAge: 3600000 * 24 * 7,
